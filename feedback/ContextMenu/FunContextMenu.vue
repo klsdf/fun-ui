@@ -2,8 +2,9 @@
 <template>
   <div 
     v-if="visible" 
+    ref="menuRef"
     class="fun-context-menu"
-    :style="{ left: position.x + 'px', top: position.y + 'px' }"
+    :style="{ left: adjustedPosition.x + 'px', top: adjustedPosition.y + 'px' }"
     @click.stop
   >
     <div 
@@ -25,6 +26,7 @@
       <!-- 二级菜单 -->
       <div 
         v-if="item.children && item.children.length > 0 && hoveredSubmenu === item.key"
+        :ref="(el) => setSubmenuRef(el as HTMLElement | null, item.key)"
         class="fun-context-submenu"
         :style="getSubmenuStyle()"
         @mouseenter="keepSubmenuOpen(item.key)"
@@ -46,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
 
 export interface ContextMenuItem {
   key: string
@@ -83,6 +85,29 @@ const emit = defineEmits<{
 const hoveredSubmenu = ref<string | null>(null)
 const submenuPosition = ref<Position>({ x: 0, y: 0 })
 const submenuTimeout = ref<number | null>(null)
+
+// 主菜单：用于测量与视口内位置
+const menuRef = ref<HTMLElement | null>(null)
+const adjustedPosition = ref<Position>({ x: 0, y: 0 })
+
+// 子菜单：用于测量与视口内位置
+const submenuRef = ref<HTMLElement | null>(null)
+const adjustedSubmenuPosition = ref<Position | null>(null)
+
+/** 将 (x, y) 约束在视口内，使宽 menuW、高 menuH 的矩形不超出视口；右侧不够时整块移到左侧，不压缩宽度 */
+function clampToViewport(x: number, y: number, menuW: number, menuH: number): Position {
+  const windowW = window.innerWidth
+  const windowH = window.innerHeight
+  let posX = x
+  let posY = y
+  // 右侧空间不够：整块移到鼠标左侧
+  if (x + menuW > windowW) posX = Math.max(0, x - menuW)
+  if (posX < 0) posX = 0
+  // 下方空间不够：贴底
+  if (y + menuH > windowH) posY = windowH - menuH
+  if (posY < 0) posY = 0
+  return { x: posX, y: posY }
+}
 
 function handleItemClick(item: ContextMenuItem) {
   // 如果有子菜单，不触发点击事件
@@ -141,18 +166,67 @@ function handleSubmenuLeave(key: string) {
   }, 150)
 }
 
+function setSubmenuRef(el: HTMLElement | null, key: string) {
+  if (el && hoveredSubmenu.value === key) submenuRef.value = el
+}
+
 function getSubmenuStyle() {
+  const pos = adjustedSubmenuPosition.value ?? submenuPosition.value
   return {
-    left: submenuPosition.value.x + 'px',
-    top: submenuPosition.value.y + 'px'
+    left: pos.x + 'px',
+    top: pos.y + 'px'
   }
 }
+
+// 主菜单：visible 或 position 变化时，测量并计算视口内位置
+watch(
+  () => [props.visible, props.position.x, props.position.y] as const,
+  ([visible]) => {
+    if (!visible) return
+    adjustedPosition.value = { x: props.position.x, y: props.position.y }
+    nextTick(() => {
+      const el = menuRef.value
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      adjustedPosition.value = clampToViewport(
+        props.position.x,
+        props.position.y,
+        rect.width,
+        rect.height
+      )
+    })
+  },
+  { immediate: true }
+)
+
+// 子菜单：打开时测量并计算视口内位置
+watch(hoveredSubmenu, (key) => {
+  if (!key) {
+    adjustedSubmenuPosition.value = null
+    submenuRef.value = null
+    return
+  }
+  adjustedSubmenuPosition.value = null
+  nextTick(() => {
+    const el = submenuRef.value
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    adjustedSubmenuPosition.value = clampToViewport(
+      submenuPosition.value.x,
+      submenuPosition.value.y,
+      rect.width,
+      rect.height
+    )
+  })
+})
 
 // 监听 visible 变化，当菜单关闭时重置二级菜单状态
 watch(() => props.visible, (newVal) => {
   if (!newVal) {
     // 菜单关闭时，重置二级菜单状态
     hoveredSubmenu.value = null
+    adjustedSubmenuPosition.value = null
+    submenuRef.value = null
     // 清理定时器
     if (submenuTimeout.value !== null) {
       clearTimeout(submenuTimeout.value)
