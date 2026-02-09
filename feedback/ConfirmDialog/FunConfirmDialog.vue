@@ -195,6 +195,9 @@ defineExpose({
   box-shadow: 0 20px 40px var(--shadow-medium);
   width: 90%;
   max-width: 450px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   animation: fun-confirm-slide-in var(--transition-slow) ease-out;
   border: 1px solid var(--border-color);
@@ -217,6 +220,7 @@ defineExpose({
   gap: var(--spacing-md);
   padding: var(--spacing-xl) var(--spacing-2xl);
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .fun-confirm__icon {
@@ -245,6 +249,9 @@ defineExpose({
 
 .fun-confirm__body {
   padding: var(--spacing-2xl);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .fun-confirm__message {
@@ -262,6 +269,7 @@ defineExpose({
   gap: var(--spacing-md);
   padding: var(--spacing-lg) var(--spacing-2xl);
   border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .fun-confirm__button {

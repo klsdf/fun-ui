@@ -212,15 +212,21 @@ const handleCellDoubleClick = async (row: any, column: string, index: number) =>
   editingIsMultiline.value = editingValue.value.includes('\n')
   editingCell.value = { rowKey, column }
   
-  // 等待下一个 tick 后聚焦输入框/文本框
+  // 等待下一个 tick 后聚焦输入框/文本框（ref 在 v-for 内会变成数组，需取首个元素）
   await nextTick()
   setTimeout(() => {
     if (editingIsMultiline.value && editTextareaRef.value) {
-      editTextareaRef.value.focus()
-      editTextareaRef.value.select()
+      const textareaEl = Array.isArray(editTextareaRef.value)
+        ? editTextareaRef.value[0]
+        : editTextareaRef.value
+      if (textareaEl && typeof textareaEl.focus === 'function') {
+        textareaEl.focus()
+        textareaEl.select()
+      }
     } else if (editInputRef.value) {
-      const inputEl = editInputRef.value.$el as HTMLInputElement
-      if (inputEl) {
+      const inputRef = Array.isArray(editInputRef.value) ? editInputRef.value[0] : editInputRef.value
+      const inputEl = inputRef?.$el as HTMLInputElement | undefined
+      if (inputEl && typeof inputEl.focus === 'function') {
         inputEl.focus()
         inputEl.select()
       }
