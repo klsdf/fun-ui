@@ -58,8 +58,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  frontImage: '/imgs/名片 - 正面.png',
-  backImage: '/imgs/名片 - 背面.png',
+  frontImage: './imgs/名片 - 正面.png',
+  backImage: './imgs/名片 - 背面.png',
   frontAlt: '名片正面',
   backAlt: '名片背面',
   flipHint: '点击翻转',

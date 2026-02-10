@@ -32,6 +32,7 @@ import FunCard from './data-display/Card/FunCard.vue'
 import FunEmptyState from './data-display/EmptyState/FunEmptyState.vue'
 import FunStatistic from './data-display/Statistic/FunStatistic.vue'
 import FunAchievementItem from './data-display/Achievement/FunAchievementItem.vue'
+import FunCarousel from './data-display/Carousel/FunCarousel.vue'
 
 // Navigation 导航组件
 import FunPagination from './navigation/Pagination/FunPagination.vue'
@@ -67,6 +68,7 @@ const components = {
   FunEmptyState,
   FunStatistic,
   FunAchievementItem,
+  FunCarousel,
   // Navigation
   FunPagination,
   FunMenu,
@@ -100,6 +102,7 @@ export function install(app: App) {
   app.component('fun-empty-state', FunEmptyState)
   app.component('fun-statistic', FunStatistic)
   app.component('fun-achievement-item', FunAchievementItem)
+  app.component('fun-carousel', FunCarousel)
   app.component('fun-pagination', FunPagination)
   app.component('fun-menu', FunMenu)
   app.component('fun-grid', FunGrid)
@@ -130,6 +133,7 @@ export {
   FunEmptyState,
   FunStatistic,
   FunAchievementItem,
+  FunCarousel,
   // Navigation
   FunPagination,
   FunMenu,
