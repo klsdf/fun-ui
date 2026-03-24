@@ -132,7 +132,7 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: var(--z-modal);
+  z-index: 10000;
   backdrop-filter: blur(4px);
 }
 
